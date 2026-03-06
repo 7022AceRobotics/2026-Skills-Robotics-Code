@@ -21,6 +21,7 @@ robot = DriveBase(left_motor, right_motor, wheel_diameter=50, axle_track=185)
 left_color = ColorSensor(Port.S1)
 right_color = ColorSensor(Port.S2)
 ultrasonic = UltrasonicSensor(Port.S3)
+ultrasonic_wall = UltrasonicSensor(Port.S4)
 HasTube = bool(False)
 grabber = Motor(Port.C)     # Medium motor (grabber)
 elevator = Motor(Port.B)   # Elevator motor
@@ -35,7 +36,7 @@ line = int(1)
 # -----------------------------
 
 
-SPEED = 35
+SPEED = 40
 TURN_GAIN = 1.2
 
 # -----------------------------
@@ -53,6 +54,7 @@ def F_intersection_detected():
 def follow_line():
     error = left_color.reflection() - right_color.reflection()
     robot.drive(SPEED, error * TURN_GAIN)
+    print("error", error)
 
 def stop_and_brake():
     robot.stop()
@@ -123,27 +125,38 @@ def follow_until_End():
 # MAIN PROGRAM FLOW
 # ----------------------------
 # FIRST INTERSECTION
-stop_and_brake()
-
-follow_line_for_seconds(2)
+robot.straight(100)
+#grabber.run(speed=-800)
+#wait(500)
+#grabber.stop(Stop.HOLD)
+elevator.run(600)
+wait(40)
+elevator.run_target(600, -130)
+#stop_and_brake()
+print("start following")
+#follow_line_for_seconds(2)
 while True:
     follow_line()
-    distance_cm = ultrasonic.distance() / 10
-    print(distance_cm)
-    if distance_cm > 16:
+    distance_cm = ultrasonic_wall.distance() / 10
+    if distance_cm < 20:
+        print("Turn Right")
         break
 ev3.speaker.beep()    # detect + stop
-wait_after_intersection(.3)
+#wait_after_intersection(.3)
 turn_right(80)
 follow_line_for_seconds(1)
 # SECOND INTERSECTION
 follow_until_intersection()
-wait_after_intersection(1)
-turn_left(80)
-
+wait_after_intersection(.5)
+print("Turn Left")
+turn_left(75)
+print("Turned Left")
 # FOLLOW LINE until other side
-follow_line_for_seconds(5)
+robot.straight(300)
+follow_line_for_seconds(1)
+print("Follow line for seconds")
 follow_until_intersection()
+print("Intersection met")
 ev3.speaker.beep()    # detect + stop
 for i in range(3):
     wait_after_intersection(2)
@@ -156,12 +169,13 @@ turn_left(80)
 follow_line_for_seconds(1)
 follow_until_intersection()
 # Release Grabber
-grabber.run(speed=600)
+elevator.run_target(300, 0, then = stop.COAST, wait = False)
+grabber.run(speed=800)
 HasTube = False
 wait(2000)
 grabber.stop(Stop.HOLD)
 
-turn_right(160)
+turn_right(140)
 follow_line_for_seconds(2)
 follow_until_intersection()
 wait_after_intersection(.3)
@@ -180,7 +194,7 @@ follow_until_End()
 
 line = 1
 if HasTube == False: 
-    turn_right(160)
+    turn_right(140)
     follow_until_intersection()
     wait_after_intersection(.3)    
     turn_right(80)
@@ -193,7 +207,7 @@ if HasTube == False:
     follow_until_End()
     line = 2
     if HasTube == False: 
-        turn_right(160)
+        turn_right(140)
         follow_until_intersection()
         wait_after_intersection(.3)    
         turn_right(80)
@@ -208,10 +222,10 @@ if HasTube == False:
 if HasTube == True:
         wait(500)
         stop_and_brake()
-        grabber.run(speed=-600)
+        grabber.run(speed=-800)
         wait(2000)
         grabber.stop(Stop.HOLD)
-        elevator.run_angle(speed=600, rotation_angle=-720,then=Stop.HOLD, wait=False)
+        elevator.run_angle(speed=100, rotation_angle=-720,then=Stop.HOLD, wait=False)
         wait(1000)
         turn_left(140)
         follow_line_for_seconds(2)
@@ -219,22 +233,22 @@ if HasTube == True:
         wait_after_intersection(.3)
         if line == 1:
             follow_line_for_seconds(6)
-            grabber.run(speed=600)
+            grabber.run(speed=800)
             wait(2000)
             grabber.stop(Stop.HOLD)
         elif line == 2:
             follow_line_for_seconds(6)
-            grabber.run(speed=600)
+            grabber.run(speed=800)
             wait(2000)
             grabber.stop(Stop.HOLD)
         elif line == 3:
-            turn_left(60)
+            turn_left(80)
             follow_line_for_seconds(2)
             follow_until_intersection()
             wait_after_intersection(.3)
             turn_right(80)
             follow_line_for_seconds(6)
-            grabber.run(speed=600)
+            grabber.run(speed=800)
             HasTube = False
             wait(2000)
             grabber.stop(Stop.HOLD)
@@ -242,11 +256,11 @@ if HasTube == True:
 robot.drive(-100,0)
 wait(1200)
 stop_and_brake()
-elevator.run(speed=600)
+elevator.run(speed=800)
 wait(2000)
 elevator.stop(Stop.HOLD)
 
-turn_left(160)
+turn_left(140)
 robot.drive(-100,0)
 wait(1000)
 stop_and_brake()
@@ -262,11 +276,11 @@ follow_until_End()
 
 wait(500)
 stop_and_brake()
-grabber.run(speed=-600)
+grabber.run(speed=-800)
 wait(2000)
 grabber.stop(Stop.HOLD)
 
-turn_right(160)
+turn_right(140)
 follow_line_for_seconds(.5)
 follow_until_intersection()
 wait_after_intersection(.3)
@@ -274,12 +288,12 @@ turn_right(80)
 follow_line_for_seconds(1)
 follow_until_intersection()
 
-grabber.run(speed=600)
+grabber.run(speed=800)
 HasTube = False
 wait(2000)
 grabber.stop(Stop.HOLD)
 
-turn_right(160)
+turn_right(140)
 follow_line_for_seconds(2)
 follow_until_intersection()
 wait_after_intersection(.3)
@@ -302,11 +316,11 @@ follow_until_End()
 
 wait(500)
 stop_and_brake()
-grabber.run(speed=-600)
+grabber.run(speed=-800)
 wait(2000)
 grabber.stop(Stop.HOLD)
 
-turn_right(160)
+turn_right(140)
 follow_line_for_seconds(2)
 follow_until_intersection()
 wait_after_intersection(.3)
@@ -328,13 +342,13 @@ turn_left(80)
 follow_line_for_seconds(1)
 follow_until_intersection()
 
-grabber.run(speed=600)
+grabber.run(speed=800)
 HasTube = False
 wait(2000)
 grabber.stop(Stop.HOLD)
 
 # Release Grabbe
-turn_right(160)
+turn_right(140)
 follow_line_for_seconds(2)
 follow_until_intersection()
 wait_after_intersection(.3)
